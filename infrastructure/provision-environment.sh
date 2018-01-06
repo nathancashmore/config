@@ -6,7 +6,7 @@ NONE=$'\e[0m'
 if [ $# -lt 2 ]
   then
     echo "Prerequisites:"
-    echo "      - aws configure OR gcloud blah blah"
+    echo "      - aws configure OR gcloud init"
     echo "      - travis login --org"
     echo "      - docker login"
     echo ""
@@ -24,24 +24,37 @@ APP_NAME=$1
 SLACK_WEBHOOK_URL=$2
 
 echo "${BLACK_ON_GREY}Provision state store${NONE}"
-aws s3 mb s3://staticvoid-co-uk-state-store
+# aws s3 mb s3://staticvoid-co-uk-state-store
+gsutil mb gs://staticvoid-co-uk-state-store
 
 export NAME=$APP_NAME.staticvoid.co.uk
 export KOPS_STATE_STORE=s3://staticvoid-co-uk-state-store
+export PROJECT=`gcloud config get-value project`
+export KOPS_FEATURE_FLAGS=AlphaAllowGCE # to unlock the GCE features
 
 echo "${BLACK_ON_GREY}Provision cluster${NONE}"
-kops create cluster \
-    --node-count 1 \
-    --zones eu-west-2a \
-    --master-zones eu-west-2a \
-    --dns-zone staticvoid.co.uk \
-    --node-size t2.micro \
-    --master-size t2.micro \
-    --topology private \
-    --networking calico \
-    --bastion \
-    --cloud=aws \
-    ${NAME}
+kops create cluster ${NAME} \
+      --zones europe-west2-a \
+      --master-zones europe-west2-a \
+      --node-count 1 \
+      --project ${PROJECT} \
+      --cloud=gce \
+      --image "ubuntu-os-cloud/ubuntu-1604-xenial-v20170202" \
+      --name ${NAME}
+      --yes
+
+# kops create cluster \
+#     --node-count 1 \
+#     --zones eu-west-2a \
+#     --master-zones eu-west-2a \
+#     --dns-zone staticvoid.co.uk \
+#     --node-size t2.micro \
+#     --master-size t2.micro \
+#     --topology private \
+#     --networking calico \
+#     --bastion \
+#     --cloud=aws \
+#     ${NAME}
 
 kops update cluster ${NAME} --yes
 
