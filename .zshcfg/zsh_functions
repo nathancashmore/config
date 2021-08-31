@@ -16,9 +16,14 @@ getOtp() {
   opoff
 }
 
-# AWS 
+# Get Yubikey TOTP
+getYubikeyOtp() {
+  ykman oath accounts code  $1 | awk -F'[ ]' '{print $3}'
+}
+
+# AWS
 aws-set-env() {
-  . ${HOME}/bin/set-env stuart.beard $(getOtp "AWS - Non Prod")
+  . ${HOME}/bin/set-env stuart.beard $(getYubikeyOtp "arn:aws:iam::154921845161:mfa/stuart.beard")
   echo
   aws eks update-kubeconfig --name ecom-su-dev-eks
 }
@@ -95,4 +100,14 @@ secret () {
 reveal () {
         output=$(echo "${1}" | rev | cut -c16- | rev)
         gpg --decrypt --output ${output} "${1}" && echo "${1} -> ${output}"
+}
+
+# Cloudformation Script Nag Scanning
+cfn_nag_scan() {
+  docker run -ti --rm -v $(pwd):/apps -w /apps alpine/cfn-nag $@
+}
+
+# Copy Ip Address to clipboard
+cpipaddr() {
+  curl ipecho.net/plain ; pbcopy
 }
