@@ -33,6 +33,8 @@ source /usr/local/etc/profile.d/z.sh
 # zsh helpers
 source "$HOME/.zshcfg/zsh_aliases"
 source "$HOME/.zshcfg/zsh_functions"
+source "$HOME/.zshcfg/zsh_kubectx"
+source "$HOME/.zshcfg/zsh_kubens"
 
 # Start GPG Agent to enable SSH via Yubikey
 export GPG_TTY="$(tty)"
